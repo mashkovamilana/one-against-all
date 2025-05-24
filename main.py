@@ -1,12 +1,17 @@
 from pygame import *
 from random import *
 
+font.init()
+mixer.init()
+
 window = display.set_mode((1600, 900))
 display.set_caption('One against all')
 background = transform.scale(image.load('images/background.png'), (1600, 900))
 start = transform.scale(image.load('images/start.png'), (800, 450))
 lose = transform.scale(image.load('images/lose.png'), (800, 450))
 win = transform.scale(image.load('images/win.png'), (800, 450))
+mixer.music.load('battleThemeA.mp3')
+mixer.music.play(-1)
 
 game = True
 FPS = 60
@@ -18,6 +23,10 @@ state = 'start'
 clock = time.Clock()
 state_timer = 0
 win_timer = 0
+lives = 3
+count = 0
+time_left = 60
+time_left_timer = 0
 
 
 class GameSprite(sprite.Sprite):
@@ -87,7 +96,27 @@ class Bullet(sprite.Sprite):
         window.blit(self.image, (self.rect.x, self.rect.y))
 
 
+class TextArea(sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = None
+        self.font = font.Font('Tiny5-Regular.ttf', 36)
+        self.x = x
+        self.y = y
+
+    def set_text(self, text):
+        self.image = self.font.render(text, False, (0, 0, 0))
+
+    def reset(self):
+        if self.image is not None:
+            window.blit(self.image, (self.x, self.y))
+
+
 player = Player('images/player.PNG', 10, 730, 700)
+score_label = TextArea(20, 20)
+score_label.set_text('Score:' + str(count))
+counter = TextArea(20, 60)
+counter.set_text('Time left:' + str(time_left))
 
 bullets = []
 enemies = []
@@ -102,8 +131,6 @@ hearts.append(GameSprite('images/heart.png', 0, 1550, 0))
 hearts.append(GameSprite('images/heart.png', 0, 1490, 0))
 hearts.append(GameSprite('images/heart.png', 0, 1430, 0))
 
-lives = 3
-count = 0
 while game:
     window.blit(background, (0, 0))
     if state == 'start':
@@ -113,8 +140,14 @@ while game:
             state = 'game'
             state_timer = 0
     if state == 'game':
+        score_label.reset()
+        counter.reset()
         player.update()
         player.reset()
+        if time_left_timer == 60:
+            time_left -= 1
+            counter.set_text('Time left:' + str(time_left))
+            time_left_timer = 0
         for enemy in enemies:
             if enemy.colliding_with(player):
                 lives -= 1
@@ -122,15 +155,13 @@ while game:
                 hearts.pop(len(hearts) - 1)
                 if lives == 0:
                     state = 'lose'
-                    lives = 3
-                    hearts.append(GameSprite('images/heart.png', 0, 1550, 0))
-                    hearts.append(GameSprite('images/heart.png', 0, 1490, 0))
-                    hearts.append(GameSprite('images/heart.png', 0, 1430, 0))
             for bullet in bullets:
                 if enemy.colliding_with(bullet):
                     bullets.remove(bullet)
                     enemy.collision()
                     count += 1
+                    score_label.set_text('Score:' + str(count))
+
         for enemy in enemies:
             enemy.update()
             enemy.reset()
@@ -141,6 +172,7 @@ while game:
             heart.update()
             heart.reset()
         win_timer += 1
+        time_left_timer += 1
         if win_timer >= 3600:
             state = 'win'
             win_timer = 0
@@ -150,12 +182,33 @@ while game:
         if state_timer >= 120:
             state = 'game'
             state_timer = 0
+            win_timer = 0
+            count = 0
+            time_left = 60
+            hearts.clear()
+            lives = 3
+            hearts.append(GameSprite('images/heart.png', 0, 1550, 0))
+            hearts.append(GameSprite('images/heart.png', 0, 1490, 0))
+            hearts.append(GameSprite('images/heart.png', 0, 1430, 0))
+            score_label.set_text('Score:' + str(count))
+            counter.set_text('Time left:' + str(time_left))
+
     if state == 'win':
         window.blit(win, (400, 250))
         state_timer += 1
         if state_timer >= 120:
             state = 'game'
             state_timer = 0
+            win_timer = 0
+            count = 0
+            time_left = 60
+            hearts.clear()
+            lives = 3
+            hearts.append(GameSprite('images/heart.png', 0, 1550, 0))
+            hearts.append(GameSprite('images/heart.png', 0, 1490, 0))
+            hearts.append(GameSprite('images/heart.png', 0, 1430, 0))
+            score_label.set_text('Score:' + str(count))
+            counter.set_text('Time left:' + str(time_left))
     for e in event.get():
         if e.type == QUIT:
             game = False
