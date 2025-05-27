@@ -12,6 +12,11 @@ lose = transform.scale(image.load('images/lose.png'), (800, 450))
 win = transform.scale(image.load('images/win.png'), (800, 450))
 mixer.music.load('battleThemeA.mp3')
 mixer.music.play(-1)
+chicken_sound = mixer.Sound('audio/Chicken.ogg')
+game_over = mixer.Sound('audio/GAMEOVER.wav')
+player_win = mixer.Sound('audio/win.wav')
+hit = mixer.Sound('audio/hit01.mp3.flac')
+player_hit = mixer.Sound('audio/qubodupRatAttack.flac')
 
 game = True
 FPS = 60
@@ -59,6 +64,7 @@ class Player(GameSprite):
             self.rect.x -= self.speed
         if keys_pressed[K_SPACE] and self.fire_timer >= 20:
             self.fire_timer = 0
+            hit.play()
             bullets.append(Bullet('images/gem.png', 6, self.rect.x + 13, self.rect.y))
         self.fire_timer += 1
 
@@ -153,10 +159,14 @@ while game:
                 lives -= 1
                 enemy.collision()
                 hearts.pop(len(hearts) - 1)
+                player_hit.play()
                 if lives == 0:
                     state = 'lose'
+                    game_over.play()
+                    mixer.music.set_volume(0)
             for bullet in bullets:
                 if enemy.colliding_with(bullet):
+                    chicken_sound.play()
                     bullets.remove(bullet)
                     enemy.collision()
                     count += 1
@@ -176,11 +186,14 @@ while game:
         if win_timer >= 3600:
             state = 'win'
             win_timer = 0
+            player_win.play()
+            mixer.music.set_volume(0)
     if state == 'lose':
         window.blit(lose, (400, 250))
         state_timer += 1
         if state_timer >= 120:
             state = 'game'
+            mixer.music.set_volume(100)
             state_timer = 0
             win_timer = 0
             count = 0
@@ -195,9 +208,12 @@ while game:
 
     if state == 'win':
         window.blit(win, (400, 250))
+        player_win.play()
         state_timer += 1
+        mixer.music.set_volume(0)
         if state_timer >= 120:
             state = 'game'
+            mixer.music.set_volume(100)
             state_timer = 0
             win_timer = 0
             count = 0
