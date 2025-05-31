@@ -1,22 +1,34 @@
 from pygame import *
 from random import *
+import os
+import sys
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 font.init()
 mixer.init()
 
 window = display.set_mode((1600, 900))
 display.set_caption('One against all')
-background = transform.scale(image.load('images/background.png'), (1600, 900))
-start = transform.scale(image.load('images/start.png'), (800, 450))
-lose = transform.scale(image.load('images/lose.png'), (800, 450))
-win = transform.scale(image.load('images/win.png'), (800, 450))
-mixer.music.load('battleThemeA.mp3')
+background = transform.scale(image.load(resource_path('images/background.png')), (1600, 900))
+start = transform.scale(image.load(resource_path('images/start.png')), (800, 450))
+lose = transform.scale(image.load(resource_path('images/lose.png')), (800, 450))
+win = transform.scale(image.load(resource_path('images/win.png')), (800, 450))
+mixer.music.load(resource_path('audio/battleThemeA.mp3'))
 mixer.music.play(-1)
-chicken_sound = mixer.Sound('audio/Chicken.ogg')
-game_over = mixer.Sound('audio/GAMEOVER.wav')
-player_win = mixer.Sound('audio/win.wav')
-hit = mixer.Sound('audio/hit01.mp3.flac')
-player_hit = mixer.Sound('audio/qubodupRatAttack.flac')
+chicken_sound = mixer.Sound(resource_path('audio/Chicken.ogg'))
+game_over = mixer.Sound(resource_path('audio/GAMEOVER.wav'))
+player_win = mixer.Sound(resource_path('audio/win.wav'))
+hit = mixer.Sound(resource_path('audio/hit01.mp3.flac'))
+player_hit = mixer.Sound(resource_path('audio/qubodupRatAttack.flac'))
 
 game = True
 FPS = 60
@@ -37,7 +49,7 @@ time_left_timer = 0
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, speed, x, y):
         super().__init__()
-        self.image = transform.scale(image.load(player_image), (50, 50))
+        self.image = transform.scale(image.load(resource_path(player_image)), (50, 50))
         self.speed = speed
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -87,7 +99,7 @@ class Enemy(GameSprite):
 class Bullet(sprite.Sprite):
     def __init__(self, player_image, speed, x, y):
         super().__init__()
-        self.image = transform.scale(image.load(player_image), (25, 25))
+        self.image = transform.scale(image.load(resource_path(player_image)), (25, 25))
         self.speed = speed
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -106,7 +118,7 @@ class TextArea(sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = None
-        self.font = font.Font('Tiny5-Regular.ttf', 36)
+        self.font = font.Font(resource_path('Tiny5-Regular.ttf'), 36)
         self.x = x
         self.y = y
 
